@@ -49,12 +49,12 @@
     if([responseObject isKindOfClass:[NSDictionary class]]){
         NSDictionary *responseDict = (NSDictionary *)responseObject;
         NSInteger code = [responseDict[@"code"] integerValue];
-        if (code!= 1) {
-            //TODO: it is better to inject the common error code handlers
+        if (code == 1) {
+            //TODO: 此处判断错误码再进行相应的操作
         }else{
             if (modelClass) {
                 ///此处多一步解包,也可以直接用原始数据
-                NSDictionary *data = responseDict[@"data"];
+                NSDictionary *data = responseDict;
                 if (data!=nil) {
                     NSError * err = nil;
                     JHBaseModel * resultModel = [[modelClass alloc] initWithDictionary:data error:&err];
@@ -62,7 +62,7 @@
                 }
             }
             else{
-                success(responseDict[@"data"]);
+                success(responseDict);
             }
         }
     }

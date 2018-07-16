@@ -7,7 +7,7 @@
 //
 
 #import "JHRequest.h"
-#define NetworkHost        @""
+#define NetworkHost        @"https://api.github.com/"
 
 @implementation JHRequest
 + (NSURLSessionTask *)requestManager:(id)parameters
@@ -31,7 +31,7 @@
 }
     
 +(NSString *)getInterfaceWithName:(NSString *)name{
-    NSString *url =[NSString stringWithFormat:@"%@/%@", NetworkHost, name];
+    NSString *url =[NSString stringWithFormat:@"%@%@", NetworkHost, name];
     return url;
 }
 @end

@@ -167,7 +167,7 @@ static AFHTTPSessionManager *_sessionManager;
      */
 + (void)initialize {
     _sessionManager = [AFHTTPSessionManager manager];
-    _sessionManager.requestSerializer.timeoutInterval = 120.f;
+    _sessionManager.requestSerializer.timeoutInterval = 10.f;
     //    _sessionManager.responseSerializer = [AFJSONResponseSerializer serializer];
     //    _sessionManager.requestSerializer = [AFHTTPRequestSerializer serializer];
     [_sessionManager.requestSerializer setValue:@"application/x-www-form-urlencoded"  forHTTPHeaderField:@"Content-Type"];
