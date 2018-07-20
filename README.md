@@ -14,12 +14,12 @@
 ##  安装
 ### 1.手动添加:<br>
 *   1.将 JHNetworkModule 文件夹添加到工程目录中<br>
-*   2.导入 JHNetworkModule.h
+*   2.导入 JHRequest.h
 
 ### 2.CocoaPods:<br>
 *   1.在 Podfile 中添加 pod 'JHNetworkModule'<br>
 *   2.执行 pod install 或 pod update<br>
-*   3.导入 JHNetworkModule.h
+*   3.导入 JHRequest.h
 
 
 
