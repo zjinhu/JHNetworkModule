@@ -2,17 +2,16 @@
 网络请求组件，封装AFNetwork，JSONModel
 仅封装简单的方法，以后扩展
 ## 使用方法
-*一般请求 导入 JHBaseRequest.h
+
 ```objc
-    [JHBaseRequest requestWithURL:接口完整地址 parameters:参数字典 requestType:JHRequestType_Get modelClass:model类名字 success:^(id response) {
+    [JHBaseRequest request:接口名称 parameters:参数字典 requestType:JHRequestType_Get modelClass:model类名字 success:^(id response) {
         成功返回（如果传了model类，则response为所传递的model对象，如果没传model，response则是字典）
     } failure:^(NSError *error) {
         失败返回
     }];
 ```
-*上传下载请求 导入 JHNetworking.h
 ```objc
-    [JHNetworking uploadImageWithURL:接口完整地址 parameters:参数字典 withImage:UIImage success:^(id responseObject) {
+    [JHBaseRequest uploadImage:接口名称 parameters:参数字典 withImage:UIImage success:^(id responseObject) {
         成功返回
     } failure:^(NSError *error) {
         失败返回
