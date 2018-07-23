@@ -35,7 +35,10 @@ typedef NS_ENUM(NSUInteger, JHResponseSerializer) {
     /** 设置响应数据为二进制格式*/
     JHResponseSerializerHTTP,
 };
-
+typedef NS_ENUM(NSInteger, JHRequestType){
+    JHRequestType_Get = 0,
+    JHRequestType_Post,
+};
 /** 请求成功的Block */
 typedef void(^JHHttpRequestSuccess)(id responseObject);
 
@@ -76,7 +79,7 @@ typedef void (^JHHttpProgress)(NSProgress *progress);
 /// 关闭日志打印,默认关闭
 + (void)closeLog;
 /**
-*  GET请求,无缓存
+*  请求,无缓存
 *
 *  @param URL        请求地址
 *  @param parameters 请求参数
@@ -85,25 +88,85 @@ typedef void (^JHHttpProgress)(NSProgress *progress);
 *
 *  @return 返回的对象可取消请求,调用cancel方法
 */
-+ (__kindof NSURLSessionTask *)GET:(NSString *)URL
-                        parameters:(id)parameters
-                           success:(JHHttpRequestSuccess)success
-                           failure:(JHHttpRequestFailed)failure;
+
++ (__kindof NSURLSessionTask *)request:(NSString *)URL
+                           requestType:(JHRequestType)requestType
+                            parameters:(id)parameters
+                               success:(JHHttpRequestSuccess)success
+                               failure:(JHHttpRequestFailed)failure;
+
 /**
-*  POST请求,无缓存
-*
-*  @param URL        请求地址
-*  @param parameters 请求参数
-*  @param success    请求成功的回调
-*  @param failure    请求失败的回调
-*
-*  @return 返回的对象可取消请求,调用cancel方法
-*/
-+ (__kindof NSURLSessionTask *)POST:(NSString *)URL
-                         parameters:(id)parameters
-                            success:(JHHttpRequestSuccess)success
-                            failure:(JHHttpRequestFailed)failure;
-    
+ *  上传单张图片
+ *
+ *  @param URL        请求地址
+ *  @param parameters 请求参数
+ *  @param image     图片
+ *  @param success    请求成功的回调
+ *  @param failure    请求失败的回调
+ *
+ *  @return 返回的对象可取消请求,调用cancel方法
+ */
++ (NSURLSessionTask *)uploadImageWithURL:(NSString *)URL
+                              parameters:(id)parameters
+                               withImage:(UIImage *)image
+                                 success:(JHHttpRequestSuccess)success
+                                 failure:(JHHttpRequestFailed)failure;
+
++ (NSURLSessionTask *)uploadImageDataWithURL:(NSString *)URL
+                                  parameters:(id)parameters
+                                   ImageData:(NSData *)ImageData
+                                     success:(JHHttpRequestSuccess)success
+                                     failure:(JHHttpRequestFailed)failure;
+/**
+ *  上传单/多张图片
+ *
+ *  @param URL        请求地址
+ *  @param parameters 请求参数
+ *  @param imageDatas     图片数组
+ *  @param success    请求成功的回调
+ *  @param failure    请求失败的回调
+ *
+ *  @return 返回的对象可取消请求,调用cancel方法
+ */
++(__kindof NSURLSessionTask *)uploadImagesWithURL:(NSString *)URL
+                                       parameters:(id)parameters
+                                       ImageDatas:(NSArray *)imageDatas
+                                          success:(JHHttpRequestSuccess)success
+                                          failure:(JHHttpRequestFailed)failure;
+
+/**
+ *  上传文件
+ *
+ *  @param URL        请求地址
+ *  @param parameters 请求参数
+ *  @param fileData   文件/////内部写死MP4文件,有需要请修改
+ *  @param success    请求成功的回调
+ *  @param failure    请求失败的回调
+ *
+ *  @return 返回的对象可取消请求,调用cancel方法
+ */
++ (__kindof NSURLSessionTask *)uploadFileWithURL:(NSString *)URL
+                                      parameters:(id)parameters
+                                        fileData:(NSData *)fileData
+                                         success:(JHHttpRequestSuccess)success
+                                         failure:(JHHttpRequestFailed)failure;
+
+/**
+ *  下载文件
+ *
+ *  @param URL      请求地址
+ *  @param fileDir  文件存储目录(默认存储目录为Download)
+ *  @param progress 文件下载的进度信息
+ *  @param success  下载成功的回调(回调参数filePath:文件的路径)
+ *  @param failure  下载失败的回调
+ *
+ *  @return 返回NSURLSessionDownloadTask实例，可用于暂停继续，暂停调用suspend方法，开始下载调用resume方法
+ */
++ (__kindof NSURLSessionTask *)downloadWithURL:(NSString *)URL
+                                       fileDir:(NSString *)fileDir
+                                      progress:(JHHttpProgress)progress
+                                       success:(void(^)(NSString *filePath))success
+                                       failure:(JHHttpRequestFailed)failure;
 #pragma mark - 设置AFHTTPSessionManager相关属性
 #pragma mark 注意: 因为全局只有一个AFHTTPSessionManager实例,所以以下设置方式全局生效
 /**

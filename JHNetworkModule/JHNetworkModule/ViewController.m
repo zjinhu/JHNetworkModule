@@ -7,8 +7,9 @@
 //
 
 #import "ViewController.h"
-#import "JHRequest.h"
+#import "JHBaseRequest.h"
 #import "JHFaceModel.h"
+#import "JHNetworking.h"
 @interface ViewController ()
 
 @end
@@ -17,19 +18,20 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [JHRequest requestManager:nil requestApi:@"users/facebook" requestType:JHRequestType_Get modelClass:NSStringFromClass([JHFaceModel class]) success:^(id response) {
+    [JHBaseRequest requestWithURL:[JHBaseRequest getURLWithName:@"users/facebook"] parameters:nil requestType:JHRequestType_Get modelClass:@"JHFaceModel" success:^(id response) {
         JHFaceModel *model = response;
         NSLog(@"%@",model);
     } failure:^(NSError *error) {
         NSLog(@"请求失败");
     }];
     
-    [JHRequest requestManager:nil requestApi:@"users/facebook" requestType:JHRequestType_Get modelClass:nil success:^(id response) {
+    [JHBaseRequest requestWithURL:[JHBaseRequest getURLWithName:@"users/facebook"] parameters:nil requestType:JHRequestType_Get modelClass:NSStringFromClass([JHFaceModel class]) success:^(id response) {
         NSLog(@"%@",response);
     } failure:^(NSError *error) {
         NSLog(@"请求失败");
     }];
     // Do any additional setup after loading the view, typically from a nib.
+
 }
 
 

@@ -17,7 +17,6 @@
 		856AAF0520FC855D00FB455F /* JHBaseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF0420FC855D00FB455F /* JHBaseModel.m */; };
 		856AAF0820FC86FA00FB455F /* JHNetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF0720FC86F900FB455F /* JHNetworking.m */; };
 		856AAF0B20FC8E2900FB455F /* JHBaseRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF0A20FC8E2900FB455F /* JHBaseRequest.m */; };
-		856AAF0E20FC8F5C00FB455F /* JHRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF0D20FC8F5C00FB455F /* JHRequest.m */; };
 		856AAF4020FCA00300FB455F /* JHFaceModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF3F20FCA00300FB455F /* JHFaceModel.m */; };
 /* End PBXBuildFile section */
 
@@ -40,8 +39,6 @@
 		856AAF0720FC86F900FB455F /* JHNetworking.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHNetworking.m; sourceTree = "<group>"; };
 		856AAF0920FC8E2900FB455F /* JHBaseRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHBaseRequest.h; sourceTree = "<group>"; };
 		856AAF0A20FC8E2900FB455F /* JHBaseRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHBaseRequest.m; sourceTree = "<group>"; };
-		856AAF0C20FC8F5C00FB455F /* JHRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHRequest.h; sourceTree = "<group>"; };
-		856AAF0D20FC8F5C00FB455F /* JHRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHRequest.m; sourceTree = "<group>"; };
 		856AAF3E20FCA00300FB455F /* JHFaceModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHFaceModel.h; sourceTree = "<group>"; };
 		856AAF3F20FCA00300FB455F /* JHFaceModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHFaceModel.m; sourceTree = "<group>"; };
 		A9D20BAB60A59FB457F0B7DA /* Pods_JHNetworkModule.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_JHNetworkModule.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -114,8 +111,6 @@
 				856AAF0720FC86F900FB455F /* JHNetworking.m */,
 				856AAF0920FC8E2900FB455F /* JHBaseRequest.h */,
 				856AAF0A20FC8E2900FB455F /* JHBaseRequest.m */,
-				856AAF0C20FC8F5C00FB455F /* JHRequest.h */,
-				856AAF0D20FC8F5C00FB455F /* JHRequest.m */,
 			);
 			path = Class;
 			sourceTree = "<group>";
@@ -242,7 +237,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				856AAEF120FC83CC00FB455F /* ViewController.m in Sources */,
-				856AAF0E20FC8F5C00FB455F /* JHRequest.m in Sources */,
 				856AAF4020FCA00300FB455F /* JHFaceModel.m in Sources */,
 				856AAF0820FC86FA00FB455F /* JHNetworking.m in Sources */,
 				856AAEFC20FC83D200FB455F /* main.m in Sources */,

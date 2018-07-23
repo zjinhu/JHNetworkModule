@@ -7,40 +7,29 @@
 //
 
 #import "JHBaseRequest.h"
-#import "JHNetworking.h"
 #import "JHBaseModel.h"
 @implementation JHBaseRequest
-    
+static NSString *const HostURL = @"https://api.github.com/";
 #pragma mark - 请求的公共方法
-+(NSURLSessionTask *)getWithURL:(NSString *)URL
-                     parameters:(id)parameter
-                     modelClass:(Class)modelClass
-                        success:(JHRequestSuccess)success
-                        failure:(JHRequestFailure)failure{
-    // 发起请求
-    return [JHNetworking GET:URL parameters:parameter success:^(id responseObject) {
-        [self cookTheResponse:responseObject modelClass:modelClass success:success failure:failure];
++(NSString *)getURLWithName:(NSString *)name{
+    NSString *url =[NSString stringWithFormat:@"%@%@", HostURL, name];
+    return url;
+}
+
++ (NSURLSessionTask *)requestWithURL:(NSString *)URL
+                          parameters:(id)parameter
+                         requestType:(JHRequestType)requestType
+                          modelClass:(NSString *)modelClass
+                             success:(JHRequestSuccess)success
+                             failure:(JHRequestFailure)failure{
+ 
+    return [JHNetworking request:URL requestType:requestType parameters:parameter success:^(id responseObject) {
+        [self cookTheResponse:responseObject modelClass:NSClassFromString(modelClass) success:success failure:failure];
     } failure:^(NSError *error) {
         failure(error);
     }];
 }
-    
-+(NSURLSessionTask *)postWithURL:(NSString *)URL
-                      parameters:(id)parameter
-                      modelClass:(Class)modelClass
-                         success:(JHRequestSuccess)success
-                         failure:(JHRequestFailure)failure{
-    // 发起请求
-    return [JHNetworking POST:URL parameters:parameter success:^(id responseObject) {
-        // 在这里你可以根据项目自定义其他一些重复操作,比如加载页面时候的等待效果, 提醒弹窗....
-        [self cookTheResponse:responseObject modelClass:modelClass success:success failure:failure];
-        
-    } failure:^(NSError *error) {
-        failure(error);
-    }];
-    
-}
-    
+
 +(void)cookTheResponse:(id)responseObject
             modelClass:(Class)modelClass
                success:(JHRequestSuccess)success
