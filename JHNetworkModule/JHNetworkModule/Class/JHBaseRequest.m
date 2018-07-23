@@ -15,14 +15,13 @@ static NSString *const HostURL = @"https://api.github.com/";
 
 /************************************************************************/
 ///此处方法配合JHNetworkConfig使用,无害化嵌入环境
-static NSString *const keyNetwork = @"JHNetworkSettingHost";
-static NSString *const kAddNetworkAddress = @"ManualAddNetworkAddress";
+static NSString *const urlNetwork = @"JHNetworkSettingHostURL";
 /************************************************************************/
 #pragma mark - 请求的公共方法
 +(NSString *)getURLWithName:(NSString *)name{
 #ifdef DEBUG
     ///此处方法配合JHNetworkConfig使用,无害化嵌入环境
-    NSString *url = [self getDefaultNetworkHost];
+    NSString *url =  [[NSUserDefaults standardUserDefaults] objectForKey:urlNetwork];
     NSString *debugUrl =[NSString stringWithFormat:@"%@%@",url.length>0? url :HostURL, name];
     return debugUrl;
 #else
@@ -30,28 +29,12 @@ static NSString *const kAddNetworkAddress = @"ManualAddNetworkAddress";
     return releaseUrl;
 #endif
 }
-/************************************************************************/
-///此处方法配合JHNetworkConfig使用,无害化嵌入环境
-+ (NSString *)getDefaultNetworkHost {
-    __block NSString *networkUrl = nil;
-    NSString *networkName = [[NSUserDefaults standardUserDefaults] objectForKey:keyNetwork];
-    NSDictionary *dict = [[NSUserDefaults standardUserDefaults] objectForKey:kAddNetworkAddress];
-    NSArray *nameArray = dict.allKeys;
-    [nameArray enumerateObjectsUsingBlock:^(NSString *name, NSUInteger idx, BOOL * _Nonnull stop) {
-        if ([name isEqualToString:networkName]) {
-            networkUrl = [dict objectForKey:name];
-            *stop = YES;
-        }
-    }];
-    return networkUrl;
-}
-/************************************************************************/
 
 +(void)cookTheResponse:(id)responseObject
             modelClass:(Class)modelClass
                success:(JHRequestSuccess)success
                failure:(JHRequestFailure)failure{
-
+    
     if([responseObject isKindOfClass:[NSDictionary class]]){
         NSDictionary *responseDict = (NSDictionary *)responseObject;
         NSInteger code = [responseDict[@"code"] integerValue];
