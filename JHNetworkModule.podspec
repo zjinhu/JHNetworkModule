@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.summary          = '网络请求组件.'
  
   s.description      = <<-DESC
-							可单独使用也可以搭配JHNetworkEnvironmentModule作为JHNetworkEnvironmentModule的工具.
+							可单独使用也可以搭配JHNetworkConfig.
                        DESC
 
   s.homepage         = 'https://github.com/jackiehu/' 
