@@ -9,6 +9,15 @@
 #import "JHNetworking.h"
 #import "AFNetworking.h"
 #import "AFNetworkActivityIndicatorManager.h"
+
+#ifdef DEBUG
+#define CNLog(...) printf("[%s] %s [第%d行]: %s\n", __TIME__ ,__PRETTY_FUNCTION__ ,__LINE__, [[NSString stringWithFormat:__VA_ARGS__] UTF8String])
+#else
+#define CNLog(...)
+#endif
+
+#define NSStringFormat(format,...) [NSString stringWithFormat:format,##__VA_ARGS__]
+
 @implementation JHNetworking
     
 static BOOL _isOpenLog;   // 是否已开启日志打印
@@ -104,7 +113,7 @@ static AFHTTPSessionManager *_sessionManager;
         
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (_isOpenLog) {
-            NSLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
+            CNLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
         }
         [[self allSessionTask] removeObject:task];
         success ? success(responseObject) : nil;
@@ -113,7 +122,7 @@ static AFHTTPSessionManager *_sessionManager;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
         if (_isOpenLog) {
-            NSLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
+            CNLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
             
         }
         [[self allSessionTask] removeObject:task];
@@ -136,7 +145,7 @@ static AFHTTPSessionManager *_sessionManager;
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         
         if (_isOpenLog) {
-            NSLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
+            CNLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
             
         }
         [[self allSessionTask] removeObject:task];
@@ -146,7 +155,7 @@ static AFHTTPSessionManager *_sessionManager;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
         if (_isOpenLog) {
-            NSLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
+            CNLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
         }
         
         [[self allSessionTask] removeObject:task];
@@ -203,13 +212,13 @@ static AFHTTPSessionManager *_sessionManager;
         //        QQLog(@"上传进度:%.2f%%",100.0 * uploadProgress.completedUnitCount/uploadProgress.totalUnitCount);
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (_isOpenLog) {
-            NSLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
+            CNLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
         }
         [[self allSessionTask] removeObject:task];
         success ? success(responseObject) : nil;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         if (_isOpenLog) {
-            NSLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
+            CNLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
         }
         [[self allSessionTask] removeObject:task];
         failure ? failure(error) : nil;
@@ -258,13 +267,13 @@ static AFHTTPSessionManager *_sessionManager;
         //        NSLog(@"上传进度:%.2f%%",100.0 * uploadProgress.completedUnitCount/uploadProgress.totalUnitCount);
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if (_isOpenLog) {
-            NSLog(@"responseObject = %@",responseObject);
+            CNLog(@"responseObject = %@",responseObject);
         }
         [[self allSessionTask] removeObject:task];
         success ? success(responseObject) : nil;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         if (_isOpenLog) {
-            NSLog(@"error = %@",error);
+            CNLog(@"error = %@",error);
             
         }
         [[self allSessionTask] removeObject:task];
@@ -329,11 +338,11 @@ static AFHTTPSessionManager *_sessionManager;
     } progress:^(NSProgress * _Nonnull uploadProgress) {
         //        NSLog(@"上传进度:%.2f%%",100.0 * uploadProgress.completedUnitCount/uploadProgress.totalUnitCount);
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (_isOpenLog) {NSLog(@"responseObject = %@",responseObject);}
+        if (_isOpenLog) {CNLog(@"responseObject = %@",responseObject);}
         [[self allSessionTask] removeObject:task];
         success ? success(responseObject) : nil;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        if (_isOpenLog) {NSLog(@"error = %@",error);}
+        if (_isOpenLog) {CNLog(@"error = %@",error);}
         [[self allSessionTask] removeObject:task];
         failure ? failure(error) : nil;
     }];
@@ -370,11 +379,11 @@ static AFHTTPSessionManager *_sessionManager;
     } progress:^(NSProgress * _Nonnull uploadProgress) {
         //        QQLog(@"上传进度:%.2f%%",100.0 * uploadProgress.completedUnitCount/uploadProgress.totalUnitCount);
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (_isOpenLog) {NSLog(@"responseObject = %@",responseObject);}
+        if (_isOpenLog) {CNLog(@"responseObject = %@",responseObject);}
         [[self allSessionTask] removeObject:task];
         success ? success(responseObject) : nil;
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        if (_isOpenLog) {NSLog(@"error = %@",error);}
+        if (_isOpenLog) {CNLog(@"error = %@",error);}
         [[self allSessionTask] removeObject:task];
         failure ? failure(error) : nil;
     }];
@@ -530,40 +539,24 @@ static AFHTTPSessionManager *_sessionManager;
 
 @end
 
-#pragma mark - NSDictionary,NSArray的分类
-/*
- ************************************************************************************
- *新建NSDictionary与NSArray的分类, 控制台打印json数据中的中文
- ************************************************************************************
- */
-
 #ifdef DEBUG
-@implementation NSArray (ShowLog)
-    
+@implementation NSDictionary (CNLog)
+
 - (NSString *)descriptionWithLocale:(id)locale {
-    NSMutableString *strM = [NSMutableString stringWithString:@"(\n"];
-    [self enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        [strM appendFormat:@"\t%@,\n", obj];
-    }];
-    [strM appendString:@")"];
-    
-    return strM;
+    NSString *logString;
+    @try {
+        
+        logString=[[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:self options:NSJSONWritingPrettyPrinted error:nil] encoding:NSUTF8StringEncoding];
+        
+    } @catch (NSException *exception) {
+        
+        NSString *reason = [NSString stringWithFormat:@"reason:%@",exception.reason];
+        logString = [NSString stringWithFormat:@"转换失败:\n%@,\n转换终止,输出如下:\n%@",reason,self.description];
+        
+    } @finally {
+        
+    }
+    return logString;
 }
-    
 @end
-
-@implementation NSDictionary (ShowLog)
-    
-- (NSString *)descriptionWithLocale:(id)locale {
-    NSMutableString *strM = [NSMutableString stringWithString:@"{\n"];
-    [self enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        [strM appendFormat:@"\t%@ = %@;\n", key, obj];
-    }];
-    
-    [strM appendString:@"}\n"];
-    
-    return strM;
-}
-    @end
 #endif
-

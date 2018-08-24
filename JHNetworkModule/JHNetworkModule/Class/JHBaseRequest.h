@@ -27,21 +27,15 @@ typedef void(^JHRequestFailure)(NSError *error);
 @interface JHBaseRequest : NSObject
 
 /**
- 获取完整URL
- @param name         api名称
- @return     URL
- */
-+(NSString *)getURLWithName:(NSString *)name;
-/**
 请求
-@param apiName     api名字
+@param url     url
 @param parameter   传递参数
 @param modelClass model类名称,不传则返回解析后的字典
 @param success  请求成功回调
 @param failure 请求失败回调
 @return     ...
 */
-+ (NSURLSessionTask *)request:(NSString *)apiName
++ (NSURLSessionTask *)request:(NSString *)url
                           parameters:(id)parameter
                          requestType:(JHRequestType)requestType
                           modelClass:(NSString *)modelClass
@@ -50,7 +44,7 @@ typedef void(^JHRequestFailure)(NSError *error);
 /**
  *  上传单/多张图片
  *
- *  @param apiName        请求地址
+ *  @param url        请求地址
  *  @param parameters 请求参数
  *  @param imageDatas     图片数组
  *  @param success    请求成功的回调
@@ -58,7 +52,7 @@ typedef void(^JHRequestFailure)(NSError *error);
  *
  *  @return 返回的对象可取消请求,调用cancel方法
  */
-+(__kindof NSURLSessionTask *)uploadImages:(NSString *)apiName
++(__kindof NSURLSessionTask *)uploadImages:(NSString *)url
                                        parameters:(id)parameters
                                        ImageDatas:(NSArray *)imageDatas
                                           success:(JHHttpRequestSuccess)success
@@ -66,7 +60,7 @@ typedef void(^JHRequestFailure)(NSError *error);
 /**
  *  上传单张图片
  *
- *  @param apiName        请求地址
+ *  @param url        请求地址
  *  @param parameters 请求参数
  *  @param image     图片
  *  @param success    请求成功的回调
@@ -74,7 +68,7 @@ typedef void(^JHRequestFailure)(NSError *error);
  *
  *  @return 返回的对象可取消请求,调用cancel方法
  */
-+ (NSURLSessionTask *)uploadImage:(NSString *)apiName
++ (NSURLSessionTask *)uploadImage:(NSString *)url
                               parameters:(id)parameters
                                withImage:(UIImage *)image
                                  success:(JHHttpRequestSuccess)success
@@ -84,7 +78,7 @@ typedef void(^JHRequestFailure)(NSError *error);
 /**
  *  下载文件
  *
- *  @param apiName      请求地址
+ *  @param url      请求地址
  *  @param fileDir  文件存储目录(默认存储目录为Download)
  *  @param progress 文件下载的进度信息
  *  @param success  下载成功的回调(回调参数filePath:文件的路径)
@@ -92,7 +86,7 @@ typedef void(^JHRequestFailure)(NSError *error);
  *
  *  @return 返回NSURLSessionDownloadTask实例，可用于暂停继续，暂停调用suspend方法，开始下载调用resume方法
  */
-+ (__kindof NSURLSessionTask *)download:(NSString *)apiName
++ (__kindof NSURLSessionTask *)download:(NSString *)url
                                        fileDir:(NSString *)fileDir
                                       progress:(JHHttpProgress)progress
                                        success:(void(^)(NSString *filePath))success

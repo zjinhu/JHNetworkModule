@@ -18,14 +18,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [JHBaseRequest request:@"users/facebook" parameters:nil requestType:JHRequestType_Get modelClass:@"JHFaceModel" success:^(id response) {
-        JHFaceModel *model = response;
-        NSLog(@"%@",model);
-    } failure:^(NSError *error) {
-        NSLog(@"请求失败");
-    }];
-    
-    [JHBaseRequest request:@"users/facebook" parameters:nil requestType:JHRequestType_Get modelClass:NSStringFromClass([JHFaceModel class]) success:^(id response) {
+
+    [JHBaseRequest request:@"https://api.github.com/users/facebook" parameters:nil requestType:JHRequestType_Get modelClass:@"JHFaceModel" success:^(id response) {
         NSLog(@"%@",response);
     } failure:^(NSError *error) {
         NSLog(@"请求失败");
