@@ -14,21 +14,25 @@ PODS:
   - AFNetworking/Serialization (3.2.1)
   - AFNetworking/UIKit (3.2.1):
     - AFNetworking/NSURLSession
-  - JSONModel (1.7.0)
+  - JSONModel (1.8.0)
+  - YYModel (1.0.4)
 
 DEPENDENCIES:
   - AFNetworking
   - JSONModel
+  - YYModel
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - AFNetworking
     - JSONModel
+    - YYModel
 
 SPEC CHECKSUMS:
   AFNetworking: b6f891fdfaed196b46c7a83cf209e09697b94057
-  JSONModel: 840bc0fcffb24b8454d2c026bf26fea454b8e98d
+  JSONModel: 02ab723958366a3fd27da57ea2af2113658762e9
+  YYModel: 2a7fdd96aaa4b86a824e26d0c517de8928c04b30
 
-PODFILE CHECKSUM: 53b0ede839b675b0b877b6867375394762fe3a81
+PODFILE CHECKSUM: b3b6884b1f67a40ad8ee8464cda350786caa2cb2
 
-COCOAPODS: 1.5.2
+COCOAPODS: 1.6.0

@@ -17,3 +17,16 @@
 @property(nonatomic,strong) NSString *name;
 @property(nonatomic,strong) NSString *blog;
 @end
+
+@interface JHCityModel : JHBaseModel
+@property(nonatomic,strong) NSString *isLocation;
+@property(nonatomic,strong) NSString *cityCode;
+@property(nonatomic,strong) NSString *cityName;
+@end
+
+@interface JHAllCityModel : JHBaseModel
+@property(nonatomic,strong) NSString *code;
+@property(nonatomic,strong) NSString *message;
+@property(nonatomic,strong) NSArray <JHCityModel *>*results;
+@end
+

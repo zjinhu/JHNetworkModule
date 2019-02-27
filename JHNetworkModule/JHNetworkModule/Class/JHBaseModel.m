@@ -9,10 +9,10 @@
 #import "JHBaseModel.h"
 
 @implementation JHBaseModel
-+(BOOL)propertyIsOptional:(NSString*)propertyName{
-    return YES;
-}
-    
+//+(BOOL)propertyIsOptional:(NSString*)propertyName{
+//    return YES;
+//}
+//
 //+(JSONKeyMapper*)keyMapper{
 //    return [JSONKeyMapper mapperForSnakeCase];
 //}

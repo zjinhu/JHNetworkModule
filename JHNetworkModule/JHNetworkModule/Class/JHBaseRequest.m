@@ -15,22 +15,28 @@
                success:(JHRequestSuccess)success
                failure:(JHRequestFailure)failure{
     
-    if([responseObject isKindOfClass:[NSDictionary class]]){
+    if([responseObject isKindOfClass:[NSArray class]]){
+        NSArray *responseArray = (NSArray *)responseObject;
+        if (modelClass) {
+            NSArray *resultArray = [NSArray yy_modelArrayWithClass:modelClass json:responseArray];
+            success(resultArray);
+        }else{
+            success(responseArray);
+        }
+    }else if([responseObject isKindOfClass:[NSDictionary class]]){
         NSDictionary *responseDict = (NSDictionary *)responseObject;
         NSInteger code = [responseDict[@"code"] integerValue];
-        if (code == 1) {
+        if (code == 0) {
             //TODO: 此处判断错误码再进行相应的操作
         }else{
             if (modelClass) {
                 ///此处多一步解包,也可以直接用原始数据
                 NSDictionary *data = responseDict;
                 if (data!=nil) {
-                    NSError * err = nil;
-                    JHBaseModel * resultModel = [[modelClass alloc] initWithDictionary:data error:&err];
+                    JHBaseModel * resultModel = [modelClass yy_modelWithDictionary:data];
                     success(resultModel);
                 }
-            }
-            else{
+            }else{
                 success(responseDict);
             }
         }

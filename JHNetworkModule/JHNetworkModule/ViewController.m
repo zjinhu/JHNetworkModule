@@ -19,8 +19,11 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    [JHBaseRequest request:@"https://api.github.com/users/facebook" parameters:nil requestType:JHRequestType_Get modelClass:@"JHFaceModel" success:^(id response) {
-        NSLog(@"%@",response);
+    [JHBaseRequest request:@"http://newuat.ikapp.ikang.com/appService/city/allCity" parameters:nil requestType:JHRequestType_Get modelClass:@"JHAllCityModel" success:^(id response) {
+        JHAllCityModel *model = response;
+        NSLog(@"%@",model);
+//        NSArray *array = response;
+//        NSLog(@"%@",array);
     } failure:^(NSError *error) {
         NSLog(@"请求失败");
     }];
