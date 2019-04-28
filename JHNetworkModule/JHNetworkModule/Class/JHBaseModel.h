@@ -8,7 +8,7 @@
 
 //#import <JSONModel/JSONModel.h>
 #import <Foundation/Foundation.h>
-
+#import <YYModel/YYModel.h>
 @interface JHBaseModel : NSObject
 ///将model存储,子类去实现
 + (void)saveWithDic:(NSDictionary *)dic;
