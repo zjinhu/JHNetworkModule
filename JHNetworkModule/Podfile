@@ -11,6 +11,6 @@ target 'JHNetworkModule' do
   #网络请求以及封装
    pod 'AFNetworking' 
   #JSON数据解析
-   pod 'JSONModel'
-#   pod 'YYModel' 
+#   pod 'JSONModel'
+   pod 'YYModel'
 end
