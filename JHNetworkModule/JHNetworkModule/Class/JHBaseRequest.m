@@ -8,6 +8,7 @@
 
 #import "JHBaseRequest.h"
 #import "JHBaseModel.h"
+#import <YYModel/YYModel.h>
 @implementation JHBaseRequest
 
 +(void)cookTheResponse:(id)responseObject
