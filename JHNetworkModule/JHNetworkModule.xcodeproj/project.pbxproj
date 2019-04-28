@@ -41,6 +41,7 @@
 		856AAF0A20FC8E2900FB455F /* JHBaseRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHBaseRequest.m; sourceTree = "<group>"; };
 		85EAEEB1212FCB6A0033185D /* JHFaceModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JHFaceModel.m; sourceTree = "<group>"; };
 		85EAEEB2212FCB6A0033185D /* JHFaceModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JHFaceModel.h; sourceTree = "<group>"; };
+		912A2CC4227598AB00014874 /* JHNetworkModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHNetworkModule.h; sourceTree = "<group>"; };
 		A9D20BAB60A59FB457F0B7DA /* Pods_JHNetworkModule.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_JHNetworkModule.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -111,6 +112,7 @@
 				856AAF0720FC86F900FB455F /* JHNetworking.m */,
 				856AAF0920FC8E2900FB455F /* JHBaseRequest.h */,
 				856AAF0A20FC8E2900FB455F /* JHBaseRequest.m */,
+				912A2CC4227598AB00014874 /* JHNetworkModule.h */,
 			);
 			path = Class;
 			sourceTree = "<group>";
