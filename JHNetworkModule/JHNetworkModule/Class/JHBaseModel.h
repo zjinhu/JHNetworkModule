@@ -16,4 +16,6 @@
 + (void)remove;
 //读取存储,子类去实现
 + (__kindof JHBaseModel *)getCurrentSaveModel;
+
+-(NSDictionary *)getCurrentDic;
 @end
