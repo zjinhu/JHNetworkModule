@@ -16,6 +16,6 @@
 + (void)remove;
 //读取存储,子类去实现
 + (__kindof JHBaseModel *)getCurrentSaveModel;
-
+//Model 转 字典
 -(NSDictionary *)getCurrentDic;
 @end
