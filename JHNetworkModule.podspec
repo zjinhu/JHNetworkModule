@@ -1,7 +1,7 @@
  
 Pod::Spec.new do |s|
   s.name             = 'JHNetworkModule'
-  s.version          = '0.4.5'
+  s.version          = '0.5.0'
   s.summary          = '网络请求组件.'
  
   s.description      = <<-DESC

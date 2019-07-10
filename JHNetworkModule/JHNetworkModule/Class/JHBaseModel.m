@@ -20,7 +20,12 @@
 //    [[NSUserDefaults standardUserDefaults] setObject:dic forKey:AccountInfoModelSaveKey];
 //    [[NSUserDefaults standardUserDefaults] synchronize];
 }
-    
+
+- (void)saveModel{
+    //    [[NSUserDefaults standardUserDefaults] setObject:[self getCurrentDic] forKey:AccountInfoModelSaveKey];
+    //    [[NSUserDefaults standardUserDefaults] synchronize];
+}
+
 + (void)remove{
 //    [[NSUserDefaults standardUserDefaults] removeObjectForKey:AccountInfoModelSaveKey];
 }

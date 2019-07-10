@@ -12,6 +12,7 @@
 @interface JHBaseModel : NSObject
 ///将model存储,子类去实现
 + (void)saveWithDic:(NSDictionary *)dic;
+- (void)saveModel;
 ///删除存储,子类去实现
 + (void)remove;
 //读取存储,子类去实现
