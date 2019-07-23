@@ -17,8 +17,8 @@
 //    return [JSONKeyMapper mapperForSnakeCase];
 //}
 + (void)saveWithDic:(NSDictionary *)dic{
-//    [[NSUserDefaults standardUserDefaults] setObject:dic forKey:AccountInfoModelSaveKey];
-//    [[NSUserDefaults standardUserDefaults] synchronize];
+    //    [[NSUserDefaults standardUserDefaults] setObject:dic forKey:AccountInfoModelSaveKey];
+    //    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (void)saveModel{
@@ -27,13 +27,13 @@
 }
 
 + (void)remove{
-//    [[NSUserDefaults standardUserDefaults] removeObjectForKey:AccountInfoModelSaveKey];
+    //    [[NSUserDefaults standardUserDefaults] removeObjectForKey:AccountInfoModelSaveKey];
 }
-    
+
 + (__kindof JHBaseModel *)getCurrentSaveModel{
-//    NSDictionary * dic= [[NSUserDefaults standardUserDefaults] objectForKey:AccountInfoModelSaveKey];
-//    AccountInfoModel * model  = [[AccountInfoModel alloc] initWithDictionary:dic error:nil];
-//    return model;
+    //    NSDictionary * dic= [[NSUserDefaults standardUserDefaults] objectForKey:AccountInfoModelSaveKey];
+    //    AccountInfoModel * model  = [[AccountInfoModel alloc] initWithDictionary:dic error:nil];
+    //    return model;
     return nil;
 }
 

@@ -8,7 +8,9 @@
 
 #ifndef JHNetworkModule_h
 #define JHNetworkModule_h
+#import "JHNetworkConst.h"
 #import "JHNetworking.h"
-#import "JHBaseRequest.h"
+#import "JHRequest.h"
 #import "JHBaseModel.h"
+#import "JHNetworkConfig.h"
 #endif /* JHNetworkModule_h */

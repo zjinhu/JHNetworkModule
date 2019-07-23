@@ -7,7 +7,7 @@
 //
 
 #import "AppDelegate.h"
-#import "JHNetworking.h"
+#import "JHRequest.h"
 @interface AppDelegate ()
 
 @end
@@ -17,7 +17,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
-    [JHNetworking openLog];
+    [JHRequest closeLog];
     return YES;
 }
 

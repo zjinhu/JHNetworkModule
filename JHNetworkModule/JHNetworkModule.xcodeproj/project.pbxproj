@@ -16,8 +16,9 @@
 		856AAEFC20FC83D200FB455F /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAEFB20FC83D200FB455F /* main.m */; };
 		856AAF0520FC855D00FB455F /* JHBaseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF0420FC855D00FB455F /* JHBaseModel.m */; };
 		856AAF0820FC86FA00FB455F /* JHNetworking.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF0720FC86F900FB455F /* JHNetworking.m */; };
-		856AAF0B20FC8E2900FB455F /* JHBaseRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF0A20FC8E2900FB455F /* JHBaseRequest.m */; };
+		856AAF0B20FC8E2900FB455F /* JHRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 856AAF0A20FC8E2900FB455F /* JHRequest.m */; };
 		85EAEEB3212FCB6A0033185D /* JHFaceModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 85EAEEB1212FCB6A0033185D /* JHFaceModel.m */; };
+		91D373F622E6E43300075CE4 /* JHNetworkConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 91D373F522E6E43300075CE4 /* JHNetworkConfig.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,11 +38,14 @@
 		856AAF0420FC855D00FB455F /* JHBaseModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHBaseModel.m; sourceTree = "<group>"; };
 		856AAF0620FC86F900FB455F /* JHNetworking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHNetworking.h; sourceTree = "<group>"; };
 		856AAF0720FC86F900FB455F /* JHNetworking.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHNetworking.m; sourceTree = "<group>"; };
-		856AAF0920FC8E2900FB455F /* JHBaseRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHBaseRequest.h; sourceTree = "<group>"; };
-		856AAF0A20FC8E2900FB455F /* JHBaseRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHBaseRequest.m; sourceTree = "<group>"; };
+		856AAF0920FC8E2900FB455F /* JHRequest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHRequest.h; sourceTree = "<group>"; };
+		856AAF0A20FC8E2900FB455F /* JHRequest.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHRequest.m; sourceTree = "<group>"; };
 		85EAEEB1212FCB6A0033185D /* JHFaceModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JHFaceModel.m; sourceTree = "<group>"; };
 		85EAEEB2212FCB6A0033185D /* JHFaceModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JHFaceModel.h; sourceTree = "<group>"; };
 		912A2CC4227598AB00014874 /* JHNetworkModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHNetworkModule.h; sourceTree = "<group>"; };
+		91D373F422E6E43300075CE4 /* JHNetworkConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHNetworkConfig.h; sourceTree = "<group>"; };
+		91D373F522E6E43300075CE4 /* JHNetworkConfig.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JHNetworkConfig.m; sourceTree = "<group>"; };
+		91D373F722E6E59600075CE4 /* JHNetworkConst.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JHNetworkConst.h; sourceTree = "<group>"; };
 		A9D20BAB60A59FB457F0B7DA /* Pods_JHNetworkModule.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_JHNetworkModule.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -108,10 +112,13 @@
 			children = (
 				856AAF0320FC855D00FB455F /* JHBaseModel.h */,
 				856AAF0420FC855D00FB455F /* JHBaseModel.m */,
+				91D373F422E6E43300075CE4 /* JHNetworkConfig.h */,
+				91D373F522E6E43300075CE4 /* JHNetworkConfig.m */,
 				856AAF0620FC86F900FB455F /* JHNetworking.h */,
 				856AAF0720FC86F900FB455F /* JHNetworking.m */,
-				856AAF0920FC8E2900FB455F /* JHBaseRequest.h */,
-				856AAF0A20FC8E2900FB455F /* JHBaseRequest.m */,
+				856AAF0920FC8E2900FB455F /* JHRequest.h */,
+				856AAF0A20FC8E2900FB455F /* JHRequest.m */,
+				91D373F722E6E59600075CE4 /* JHNetworkConst.h */,
 				912A2CC4227598AB00014874 /* JHNetworkModule.h */,
 			);
 			path = Class;
@@ -243,7 +250,8 @@
 				856AAF0820FC86FA00FB455F /* JHNetworking.m in Sources */,
 				856AAEFC20FC83D200FB455F /* main.m in Sources */,
 				856AAF0520FC855D00FB455F /* JHBaseModel.m in Sources */,
-				856AAF0B20FC8E2900FB455F /* JHBaseRequest.m in Sources */,
+				856AAF0B20FC8E2900FB455F /* JHRequest.m in Sources */,
+				91D373F622E6E43300075CE4 /* JHNetworkConfig.m in Sources */,
 				856AAEEE20FC83CC00FB455F /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -7,24 +7,42 @@
 //
 
 #import "JHNetworking.h"
-#import "AFNetworking.h"
 #import "AFNetworkActivityIndicatorManager.h"
-
-#ifdef DEBUG
-#define CNLog(...) printf("[%s] %s [第%d行]: %s\n", __TIME__ ,__PRETTY_FUNCTION__ ,__LINE__, [[NSString stringWithFormat:__VA_ARGS__] UTF8String])
-#else
-#define CNLog(...)
-#endif
-
-#define NSStringFormat(format,...) [NSString stringWithFormat:format,##__VA_ARGS__]
-
 @implementation JHNetworking
-    
-static BOOL _isOpenLog;   // 是否已开启日志打印
-static NSMutableArray *_allSessionTask;
-static AFHTTPSessionManager *_sessionManager;
-    
-+ (JHNetworking *)sharedNetworking{
+
+#pragma makr - 开始监听网络连接
+/**
+ 开始监测网络状态
+ */
++ (void)load {
+    [self startMonitoring];
+}
+
++ (void)startMonitoring{
+    // 1.获得网络监控的管理者
+    AFNetworkReachabilityManager *mgr = [AFNetworkReachabilityManager sharedManager];
+    // 2.设置网络状态改变后的处理
+    [mgr setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+        // 当网络状态改变了, 就会调用这个block
+        switch (status){
+            case AFNetworkReachabilityStatusUnknown: // 未知网络
+                [JHNetworking sharedNetworking].networkStats=StatusUnknown;
+                break;
+            case AFNetworkReachabilityStatusNotReachable: // 没有网络(断网)
+                [JHNetworking sharedNetworking].networkStats=StatusNotReachable;
+                break;
+            case AFNetworkReachabilityStatusReachableViaWWAN: // 手机自带网络
+                [JHNetworking sharedNetworking].networkStats=StatusReachableViaWWAN;
+                break;
+            case AFNetworkReachabilityStatusReachableViaWiFi: // WIFI
+                [JHNetworking sharedNetworking].networkStats=StatusReachableViaWiFi;
+                break;
+        }
+    }];
+    [mgr startMonitoring];
+}
+
++ (instancetype)sharedNetworking{
     static JHNetworking *handler = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -32,531 +50,160 @@ static AFHTTPSessionManager *_sessionManager;
     });
     return handler;
 }
-    
-#pragma makr - 开始监听网络连接
-+ (void)startMonitoring{
-    // 1.获得网络监控的管理者
-    AFNetworkReachabilityManager *mgr = [AFNetworkReachabilityManager sharedManager];
-    // 2.设置网络状态改变后的处理
-    [mgr setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-    // 当网络状态改变了, 就会调用这个block
-    switch (status){
-        case AFNetworkReachabilityStatusUnknown: // 未知网络
-            [JHNetworking sharedNetworking].networkStats=StatusUnknown;
-            break;
-        case AFNetworkReachabilityStatusNotReachable: // 没有网络(断网)
-            [JHNetworking sharedNetworking].networkStats=StatusNotReachable;
-            break;
-        case AFNetworkReachabilityStatusReachableViaWWAN: // 手机自带网络
-            [JHNetworking sharedNetworking].networkStats=StatusReachableViaWWAN;
-            break;
-        case AFNetworkReachabilityStatusReachableViaWiFi: // WIFI
-            [JHNetworking sharedNetworking].networkStats=StatusReachableViaWiFi;
-            break;
-            }
-    }];
-    [mgr startMonitoring];
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        //无条件地信任服务器端返回的证书。
+        self.securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModeNone];
+        self.securityPolicy = [AFSecurityPolicy defaultPolicy];
+        self.securityPolicy.allowInvalidCertificates = YES;
+        self.securityPolicy.validatesDomainName = NO;
+        
+        self.responseSerializer = [AFJSONResponseSerializer serializer];
+        ((AFJSONResponseSerializer*)self.responseSerializer).removesKeysWithNullValues=YES;
+        
+        [self.requestSerializer setValue:@"application/x-www-form-urlencoded"  forHTTPHeaderField:@"Content-Type"];
+        self.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/html", @"text/json", @"text/plain", @"text/javascript", @"text/xml", @"image/*",nil];
+        [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
+        
+        self.requestSerializer.HTTPShouldHandleCookies =YES;
+    }
+    return self;
 }
-    
-+ (void)openLog {
-    _isOpenLog = YES;
+
+- (void)dealloc {
+    [self invalidateSessionCancelingTasks:YES];
 }
-    
-+ (void)closeLog {
-    _isOpenLog = NO;
+
+#pragma mark - 其他配置
+- (void)requestSerializerConfig:(JHNetworkConfig *)request{
+    self.requestSerializer =request.requestSerializer==JHRequestSerializerJSON ? [AFJSONRequestSerializer serializer]:[AFHTTPRequestSerializer serializer];
 }
+
+- (void)headersAndTimeConfig:(JHNetworkConfig *)request{
+    self.requestSerializer.timeoutInterval=request.timeoutInterval?request.timeoutInterval:30;
     
-+ (void)cancelAllRequest {
-    // 锁操作
-    @synchronized(self) {
-        [[self allSessionTask] enumerateObjectsUsingBlock:^(NSURLSessionTask  *_Nonnull task, NSUInteger idx, BOOL * _Nonnull stop) {
-            [task cancel];
+    if ([[request mutableHTTPRequestHeaders] allKeys].count>0) {
+        [[request mutableHTTPRequestHeaders] enumerateKeysAndObjectsUsingBlock:^(id field, id value, BOOL * __unused stop) {
+            [self.requestSerializer setValue:value forHTTPHeaderField:field];
         }];
-        [[self allSessionTask] removeAllObjects];
     }
 }
-    
-+ (void)cancelRequestWithURL:(NSString *)URL {
-    if (!URL) { return; }
-    @synchronized (self) {
-        [[self allSessionTask] enumerateObjectsUsingBlock:^(NSURLSessionTask  *_Nonnull task, NSUInteger idx, BOOL * _Nonnull stop) {
-            if ([task.currentRequest.URL.absoluteString hasPrefix:URL]) {
+#pragma mark - 取消请求
+- (void)cancelRequest:(NSString *)URLString completion:(JHCancelRequestBlock)completion{
+    __block NSString *currentUrlString=nil;
+    BOOL results;
+    @synchronized (self.tasks) {
+        [self.tasks enumerateObjectsUsingBlock:^(NSURLSessionTask *task, NSUInteger idx, BOOL * _Nonnull stop) {
+            if ([[[task.currentRequest URL] absoluteString] isEqualToString:[URLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]]]) {
+                currentUrlString =[[task.currentRequest URL] absoluteString];
                 [task cancel];
-                [[self allSessionTask] removeObject:task];
                 *stop = YES;
             }
         }];
     }
+    if (currentUrlString==nil) {
+        results=NO;
+    }else{
+        results=YES;
+    }
+    completion ? completion(results,currentUrlString) : nil;
 }
-+ (__kindof NSURLSessionTask *)request:(NSString *)URL
-                           requestType:(JHRequestType)requestType
-                            parameters:(id)parameters
-                               success:(JHHttpRequestSuccess)success
-                               failure:(JHHttpRequestFailed)failure{
-    switch (requestType) {
-        case JHRequestType_Post:
-            return [self POST:URL parameters:parameters success:success failure:failure];
-            break;
-            
-        default:
-            return [self GET:URL parameters:parameters success:success failure:failure];
-            break;
+#pragma mark - GET/POST/PUT/PATCH/DELETE
+- (NSURLSessionDataTask *)request:(JHNetworkConfig *)request
+                    progressBlock:(void (^)(NSProgress *))progressBlock
+                          success:(void (^)(NSURLSessionDataTask *task, id responseObject))success
+                          failure:(void (^)(NSURLSessionDataTask *task, NSError *error))failure{
+    
+    [self requestSerializerConfig:request];
+    [self headersAndTimeConfig:request];
+    
+    NSString *URLString=[request.URLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+    
+    if (request.requestType==JHRequestType_Post) {
+        return [self POST:URLString parameters:request.parameters progress:progressBlock success:success failure:failure];
+    }else if (request.requestType==JHRequestType_Put){
+        return [self PUT:URLString parameters:request.parameters success:success failure:failure];
+    }else if (request.requestType==JHRequestType_Patch){
+        return [self PATCH:URLString parameters:request.parameters success:success failure:failure];
+    }else if (request.requestType==JHRequestType_Delete){
+        return [self DELETE:URLString parameters:request.parameters success:success failure:failure];
+    }else{
+        return [self GET:URLString parameters:request.parameters progress:progressBlock success:success failure:failure];
     }
 }
-#pragma mark - GET请求无缓存
-+ (NSURLSessionTask *)GET:(NSString *)URL
-               parameters:(id)parameters
-                  success:(JHHttpRequestSuccess)success
-                  failure:(JHHttpRequestFailed)failure {
+#pragma mark - upload
+- (NSURLSessionDataTask *)uploadWithRequest:(JHNetworkConfig *)request
+                              progressBlock:(void (^)(NSProgress *))progressBlock
+                                    success:(void (^)(NSURLSessionDataTask *task, id responseObject))success
+                                    failure:(void (^)(NSURLSessionDataTask *task, NSError *error))failure{
     
-    NSURLSessionTask *sessionTask = [_sessionManager GET:URL parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
-        
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (_isOpenLog) {
-            CNLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
-        }
-        [[self allSessionTask] removeObject:task];
-        success ? success(responseObject) : nil;
-        //对数据进行异步缓存
-        
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        
-        if (_isOpenLog) {
-            CNLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
-            
-        }
-        [[self allSessionTask] removeObject:task];
-        failure ? failure(error) : nil;
-        
-    }];
-    // 添加sessionTask到数组
-    sessionTask ? [[self allSessionTask] addObject:sessionTask] : nil ;
+    NSString *URLString=[request.URLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     
-    return sessionTask;
-    
-}
-#pragma mark - POST请求无缓存
-+ (NSURLSessionTask *)POST:(NSString *)URL
-                parameters:(id)parameters
-                   success:(JHHttpRequestSuccess)success
-                   failure:(JHHttpRequestFailed)failure {
-    NSURLSessionTask *sessionTask = [_sessionManager POST:URL parameters:parameters progress:^(NSProgress * _Nonnull uploadProgress) {
+    NSURLSessionDataTask *uploadTask = [self POST:URLString parameters:request.parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        
-        if (_isOpenLog) {
-            CNLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
-            
-        }
-        [[self allSessionTask] removeObject:task];
-        success ? success(responseObject) : nil;
-        //对数据进行异步缓存
-        
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        
-        if (_isOpenLog) {
-            CNLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
-        }
-        
-        [[self allSessionTask] removeObject:task];
-        failure ? failure(error) : nil;
-        
-    }];
-    
-    // 添加最新的sessionTask到数组
-    sessionTask ? [[self allSessionTask] addObject:sessionTask] : nil ;
-    return sessionTask;
-}
-    /**
-     存储着所有的请求task数组
-     */
-+ (NSMutableArray *)allSessionTask {
-    if (!_allSessionTask) {
-        _allSessionTask = [[NSMutableArray alloc] init];
-    }
-    return _allSessionTask;
-}
-/**
- *  上传单张图片
- *
- *  @param URL        请求地址
- *  @param parameters 请求参数
- *  @param image     图片
- *  @param success    请求成功的回调
- *  @param failure    请求失败的回调
- *
- *  @return 返回的对象可取消请求,调用cancel方法
- */
-+ (NSURLSessionTask *)uploadImageWithURL:(NSString *)URL
-                              parameters:(id)parameters
-                               withImage:(UIImage *)image
-                                 success:(JHHttpRequestSuccess)success
-                                 failure:(JHHttpRequestFailed)failure{
-    NSURLSessionTask *sessionTask = [_sessionManager POST:URL parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
-        NSError *error = nil;
-        NSData *imageData = UIImageJPEGRepresentation(image, 1);
-        if ((imageData.length > 0.2*(1024*1024))) {
-            //小于200k不缩放   大于1M 0.5比例压缩  小于1M 0.7比例压缩
-            double scale =imageData.length>(1024*1024)?.5:.7;
-            UIImage *image =[UIImage imageWithData:imageData];
-            imageData = UIImageJPEGRepresentation(image, scale);
-        }
-        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-        // 设置时间格式
-        [formatter setDateFormat:@"yyyyMMddHHmmss"];
-        NSString *dateString = [formatter stringFromDate:[NSDate date]];
-        NSString *fileName = [NSString  stringWithFormat:@"%@_%i.%@", dateString,arc4random(),[self contentTypeWithImageData:imageData]];
-        [formData appendPartWithFileData:imageData name:@"file" fileName:fileName mimeType:[NSString stringWithFormat:@"image/%@",[self contentTypeWithImageData:imageData]]]; //
-        (failure && error) ? failure(error) : nil;
-    } progress:^(NSProgress * _Nonnull uploadProgress) {
-        //        QQLog(@"上传进度:%.2f%%",100.0 * uploadProgress.completedUnitCount/uploadProgress.totalUnitCount);
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (_isOpenLog) {
-            CNLog(@"url = %@, parameters = %@, responseObject = %@", URL, parameters,responseObject);
-        }
-        [[self allSessionTask] removeObject:task];
-        success ? success(responseObject) : nil;
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        if (_isOpenLog) {
-            CNLog(@"url = %@, parameters = %@, error = %@", URL, parameters, error);
-        }
-        [[self allSessionTask] removeObject:task];
-        failure ? failure(error) : nil;
-    }];
-    // 添加sessionTask到数组
-    sessionTask ? [[self allSessionTask] addObject:sessionTask] : nil ;
-    return sessionTask;
-}
-
-+ (NSURLSessionTask *)uploadImageDataWithURL:(NSString *)URL
-                                  parameters:(id)parameters
-                                   ImageData:(NSData *)ImageData
-                                     success:(JHHttpRequestSuccess)success
-                                     failure:(JHHttpRequestFailed)failure{
-    NSURLSessionTask *sessionTask = [_sessionManager POST:URL parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
-        NSData *data =nil;
-        NSData *tempData = ImageData;
-        if ([self isGifWithImageData:tempData]||(tempData.length < 0.2*(1024*1024))) {
-            data=ImageData;
-        }else{
-            //小于200k不缩放   大于1M 0.5比例压缩  小于1M 0.7比例压缩
-            double scale =tempData.length>(1024*1024)?.5:.7;
-            UIImage *image =[UIImage imageWithData:tempData];
-            data = UIImageJPEGRepresentation(image, scale);
-        }
-        //        NSLog(@"tempData%lu--data%lu",(unsigned long)ImageData.length,(unsigned long)data.length);
-        //            UIImageJPEGRepresentation(image, 0.3);
-        // 在网络开发中，上传文件时，是文件不允许被覆盖，文件重名
-        // 要解决此问题，
-        // 可以在上传时使用当前的系统事件作为文件名
-        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-        // 设置时间格式
-        [formatter setDateFormat:@"yyyyMMddHHmmss"];
-        NSString *dateString = [formatter stringFromDate:[NSDate date]];
-        NSString *fileName = [NSString  stringWithFormat:@"%@_%i.%@", dateString,arc4random(),[self contentTypeWithImageData:data]];
-        /*
-         *该方法的参数
-         1. appendPartWithFileData：要上传的照片[二进制流]
-         2. name：对应网站上处理文件的字段（比如upload）
-         3. fileName：要保存在服务器上的文件名
-         4. mimeType：上传的文件的类型
-         */
-        [formData appendPartWithFileData:data name:@"file" fileName:fileName mimeType:[NSString stringWithFormat:@"image/%@",[self contentTypeWithImageData:data]]]; //
-        
-    } progress:^(NSProgress * _Nonnull uploadProgress) {
-        //        NSLog(@"上传进度:%.2f%%",100.0 * uploadProgress.completedUnitCount/uploadProgress.totalUnitCount);
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (_isOpenLog) {
-            CNLog(@"responseObject = %@",responseObject);
-        }
-        [[self allSessionTask] removeObject:task];
-        success ? success(responseObject) : nil;
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        if (_isOpenLog) {
-            CNLog(@"error = %@",error);
-            
-        }
-        [[self allSessionTask] removeObject:task];
-        failure ? failure(error) : nil;
-    }];
-    // 添加sessionTask到数组
-    sessionTask ? [[self allSessionTask] addObject:sessionTask] : nil ;
-    return sessionTask;
-}
-/**
- *  上传单/多张图片
- *
- *  @param URL        请求地址
- *  @param parameters 请求参数
- *  @param imageDatas     图片数组
- *  @param success    请求成功的回调
- *  @param failure    请求失败的回调
- *
- *  @return 返回的对象可取消请求,调用cancel方法
- */
-+(__kindof NSURLSessionTask *)uploadImagesWithURL:(NSString *)URL
-                                       parameters:(id)parameters
-                                       ImageDatas:(NSArray *)imageDatas
-                                          success:(JHHttpRequestSuccess)success
-                                          failure:(JHHttpRequestFailed)failure{
-    // －－－－－－－－－－－－－－－－－－－－－－－－－－－－上传图片－－－－
-    // 基于AFN3.0+ 封装的HTPPSession句柄
-    // 在parameters里存放照片以外的对象
-    NSURLSessionTask *sessionTask = [_sessionManager POST:URL parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
-        // formData: 专门用于拼接需要上传的数据,在此位置生成一个要上传的数据体
-        // 这里的images是你存放图片的数组
-        for (int i = 0; i < imageDatas.count; i++) {
-            //            UIImage *image = images[i];
-            NSData *imageData =nil;
-            NSData *tempData = imageDatas[i];
-            if ([self isGifWithImageData:tempData]||(tempData.length < 0.2*(1024*1024))) {
-                imageData=imageDatas[i];
-            }else{
-                //小于200k不缩放   大于1M 0.5比例压缩  小于1M 0.7比例压缩
-                double scale =tempData.length>(1024*1024)?.5:.7;
-                UIImage *image =[UIImage imageWithData:tempData];
-                imageData = UIImageJPEGRepresentation(image, scale);
+        [request.uploadDatas enumerateObjectsUsingBlock:^(JHUploadDataConfig *obj, NSUInteger idx, BOOL *stop) {
+            if (obj.fileData) {
+                if (obj.fileName && obj.mimeType) {
+                    [formData appendPartWithFileData:obj.fileData name:obj.name fileName:obj.fileName mimeType:obj.mimeType];
+                } else {
+                    [formData appendPartWithFormData:obj.fileData name:obj.name];
+                }
+            } else if (obj.fileURL) {
+                
+                if (obj.fileName && obj.mimeType) {
+                    [formData appendPartWithFileURL:obj.fileURL name:obj.name fileName:obj.fileName mimeType:obj.mimeType error:nil];
+                } else {
+                    [formData appendPartWithFileURL:obj.fileURL name:obj.name error:nil];
+                }
+                
             }
-            //            UIImageJPEGRepresentation(image, 0.3);
-            // 在网络开发中，上传文件时，是文件不允许被覆盖，文件重名
-            // 要解决此问题，
-            // 可以在上传时使用当前的系统事件作为文件名
-            NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-            // 设置时间格式
-            [formatter setDateFormat:@"yyyyMMddHHmmss"];
-            NSString *dateString = [formatter stringFromDate:[NSDate date]];
-            NSString *fileName = [NSString  stringWithFormat:@"%@_%i.%@", dateString,arc4random(),[self contentTypeWithImageData:imageData]];
-            /*
-             *该方法的参数
-             1. appendPartWithFileData：要上传的照片[二进制流]
-             2. name：对应网站上处理文件的字段（比如upload）
-             3. fileName：要保存在服务器上的文件名
-             4. mimeType：上传的文件的类型
-             */
-            [formData appendPartWithFileData:imageData name:@"file" fileName:fileName mimeType:[NSString stringWithFormat:@"image/%@",[self contentTypeWithImageData:imageData]]]; //
-        }
-    } progress:^(NSProgress * _Nonnull uploadProgress) {
-        //        NSLog(@"上传进度:%.2f%%",100.0 * uploadProgress.completedUnitCount/uploadProgress.totalUnitCount);
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (_isOpenLog) {CNLog(@"responseObject = %@",responseObject);}
-        [[self allSessionTask] removeObject:task];
-        success ? success(responseObject) : nil;
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        if (_isOpenLog) {CNLog(@"error = %@",error);}
-        [[self allSessionTask] removeObject:task];
-        failure ? failure(error) : nil;
-    }];
-    // 添加sessionTask到数组
-    sessionTask ? [[self allSessionTask] addObject:sessionTask] : nil ;
-    return sessionTask;
-}
-
-/**
- *  上传文件
- *
- *  @param URL        请求地址
- *  @param parameters 请求参数
- *  @param fileData   文件
- *  @param success    请求成功的回调
- *  @param failure    请求失败的回调
- *
- *  @return 返回的对象可取消请求,调用cancel方法
- */
-+ (__kindof NSURLSessionTask *)uploadFileWithURL:(NSString *)URL
-                                      parameters:(id)parameters
-                                        fileData:(NSData *)fileData
-                                         success:(JHHttpRequestSuccess)success
-                                         failure:(JHHttpRequestFailed)failure{
-    NSURLSessionTask *sessionTask = [_sessionManager POST:URL parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData> _Nonnull formData) {
-        NSError *error = nil;
-        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-        // 设置时间格式
-        [formatter setDateFormat:@"yyyyMMddHHmmss"];
-        NSString *dateString = [formatter stringFromDate:[NSDate date]];
-        NSString *fileName = [NSString  stringWithFormat:@"%@_%i.MP4", dateString,arc4random()];
-        [formData appendPartWithFileData:fileData name:@"file" fileName:fileName mimeType:@"video/mp4"];
-        (failure && error) ? failure(error) : nil;
-    } progress:^(NSProgress * _Nonnull uploadProgress) {
-        //        QQLog(@"上传进度:%.2f%%",100.0 * uploadProgress.completedUnitCount/uploadProgress.totalUnitCount);
-    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if (_isOpenLog) {CNLog(@"responseObject = %@",responseObject);}
-        [[self allSessionTask] removeObject:task];
-        success ? success(responseObject) : nil;
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
-        if (_isOpenLog) {CNLog(@"error = %@",error);}
-        [[self allSessionTask] removeObject:task];
-        failure ? failure(error) : nil;
-    }];
-    // 添加sessionTask到数组
-    sessionTask ? [[self allSessionTask] addObject:sessionTask] : nil ;
-    return sessionTask;
-}
-/**
- *  下载文件
- *
- *  @param URL      请求地址
- *  @param fileDir  文件存储目录(默认存储目录为Download)
- *  @param progress 文件下载的进度信息
- *  @param success  下载成功的回调(回调参数filePath:文件的路径)
- *  @param failure  下载失败的回调
- *
- *  @return 返回NSURLSessionDownloadTask实例，可用于暂停继续，暂停调用suspend方法，开始下载调用resume方法
- */
-+ (__kindof NSURLSessionTask *)downloadWithURL:(NSString *)URL
-                                       fileDir:(NSString *)fileDir
-                                      progress:(JHHttpProgress)progress
-                                       success:(void(^)(NSString *filePath))success
-                                       failure:(JHHttpRequestFailed)failure{
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:URL]];
-    __block NSURLSessionDownloadTask *downloadTask = [_sessionManager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
-        //下载进度
+        }];
+        
+    } progress:^(NSProgress * uploadProgress) {
         dispatch_sync(dispatch_get_main_queue(), ^{
-            progress ? progress(downloadProgress) : nil;
+            progressBlock ? progressBlock(uploadProgress) : nil;
         });
-    } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-        //拼接缓存目录
-        NSString *downloadDir = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:fileDir ? fileDir : @"Download"];
-        //打开文件管理器
-        NSFileManager *fileManager = [NSFileManager defaultManager];
-        //创建Download目录
-        [fileManager createDirectoryAtPath:downloadDir withIntermediateDirectories:YES attributes:nil error:nil];
-        //拼接文件路径
-        NSString *filePath = [downloadDir stringByAppendingPathComponent:response.suggestedFilename];
-        //返回文件位置的URL路径
-        return [NSURL fileURLWithPath:filePath];
-        
-    } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-        
-        [[self allSessionTask] removeObject:downloadTask];
-        if(failure && error) {failure(error) ; return ;};
-        success ? success(filePath.absoluteString /** NSURL->NSString*/) : nil;
-        
-    }];
-    //开始下载
-    [downloadTask resume];
-    // 添加sessionTask到数组
-    downloadTask ? [[self allSessionTask] addObject:downloadTask] : nil ;
-    
-    return downloadTask;
-}
-#pragma mark - 判断图片种类
-
-+ (BOOL)isGifWithImageData: (NSData *)data {
-    if ([[self contentTypeWithImageData:data] isEqualToString:@"gif"]) {
-        return YES;
-    }
-    return NO;
-}
-+ (NSString *)contentTypeWithImageData: (NSData *)data {
-    uint8_t c;
-    [data getBytes:&c length:1];
-    switch (c) {
-        case 0xFF:
-            return @"jpeg";
-        case 0x89:
-            return @"png";
-        case 0x47:
-            return @"gif";
-        case 0x49:
-        case 0x4D:
-            return @"tiff";
-        case 0x52:
-            if ([data length] < 12) {
-                return nil;
-            }
-            NSString *testString = [[NSString alloc] initWithData:[data subdataWithRange:NSMakeRange(0, 12)] encoding:NSASCIIStringEncoding];
-            if ([testString hasPrefix:@"RIFF"] && [testString hasSuffix:@"WEBP"]) {
-                return @"webp";
-            }
-            return nil;
-    }
-    return nil;
+    } success:success failure:failure];
+    return uploadTask;
 }
 
-#pragma mark - 初始化AFHTTPSessionManager相关属性
-    /**
-     开始监测网络状态
-     */
-+ (void)load {
-    [self startMonitoring];
-}
-    /**
-     *  所有的HTTP请求共享一个AFHTTPSessionManager
-     *  原理参考地址:http://www.jianshu.com/p/5969bbb4af9f
-     */
-+ (void)initialize {
-    _sessionManager = [AFHTTPSessionManager manager];
-    _sessionManager.requestSerializer.timeoutInterval = 10.f;
-    //    _sessionManager.responseSerializer = [AFJSONResponseSerializer serializer];
-    //    _sessionManager.requestSerializer = [AFHTTPRequestSerializer serializer];
-    [_sessionManager.requestSerializer setValue:@"application/x-www-form-urlencoded"  forHTTPHeaderField:@"Content-Type"];
-    _sessionManager.responseSerializer.acceptableContentTypes = [NSSet setWithObjects:@"application/json", @"text/html", @"text/json", @"text/plain", @"text/javascript", @"text/xml", @"image/*", nil];
+#pragma mark - DownLoad
+- (NSURLSessionDownloadTask *)downloadWithRequest:(JHNetworkConfig *)request
+                                    progressBlock:(void (^)(NSProgress *downloadProgress)) progressBlock
+                                completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler{
     
-    ((AFJSONResponseSerializer*)_sessionManager.responseSerializer).removesKeysWithNullValues=YES;
+    NSString *URLString=[request.URLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     
-    [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
-    _sessionManager.requestSerializer.HTTPShouldHandleCookies =YES;
-}
+    NSURLRequest *urlRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
     
-#pragma mark - 重置AFHTTPSessionManager相关属性
+    [self headersAndTimeConfig:request];
     
-+ (void)setAFHTTPSessionManagerProperty:(void (^)(AFHTTPSessionManager *))sessionManager {
-    sessionManager ? sessionManager(_sessionManager) : nil;
-}
+    NSURL *downloadFileSavePath;
+    BOOL isDirectory;
+    if(![[NSFileManager defaultManager] fileExistsAtPath:request.downloadSavePath isDirectory:&isDirectory]) {
+        isDirectory = NO;
+    }
+    if (isDirectory) {
+        NSString *fileName = [urlRequest.URL lastPathComponent];
+        downloadFileSavePath = [NSURL fileURLWithPath:[NSString pathWithComponents:@[request.downloadSavePath, fileName]] isDirectory:NO];
+    } else {
+        downloadFileSavePath = [NSURL fileURLWithPath:request.downloadSavePath isDirectory:NO];
+    }
+    NSURLSessionDownloadTask *dataTask = [self downloadTaskWithRequest:urlRequest progress:^(NSProgress * downloadProgress) {
+        
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            progressBlock ? progressBlock(downloadProgress) : nil;
+        });
+        
+    } destination:^NSURL * _Nonnull(NSURL * targetPath, NSURLResponse * response) {
+        return downloadFileSavePath;
+    } completionHandler:completionHandler];
     
-+ (void)setRequestSerializer:(JHRequestSerializer)requestSerializer {
-    _sessionManager.requestSerializer = requestSerializer==JHRequestSerializerHTTP ? [AFHTTPRequestSerializer serializer] : [AFJSONRequestSerializer serializer];
-}
-    
-+ (void)setResponseSerializer:(JHResponseSerializer)responseSerializer {
-    _sessionManager.responseSerializer = responseSerializer==JHResponseSerializerHTTP ? [AFHTTPResponseSerializer serializer] : [AFJSONResponseSerializer serializer];
-}
-    
-+ (void)setRequestTimeoutInterval:(NSTimeInterval)time {
-    _sessionManager.requestSerializer.timeoutInterval = time;
-}
-    
-+ (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field {
-    [_sessionManager.requestSerializer setValue:value forHTTPHeaderField:field];
-}
-    
-+ (void)openNetworkActivityIndicator:(BOOL)open {
-    [[AFNetworkActivityIndicatorManager sharedManager] setEnabled:open];
-}
-    
-+ (void)setSecurityPolicyWithCerPath:(NSString *)cerPath validatesDomainName:(BOOL)validatesDomainName {
-    NSData *cerData = [NSData dataWithContentsOfFile:cerPath];
-    // 使用证书验证模式
-    AFSecurityPolicy *securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModeCertificate];
-    // 如果需要验证自建证书(无效证书)，需要设置为YES
-    securityPolicy.allowInvalidCertificates = YES;
-    // 是否需要验证域名，默认为YES;
-    securityPolicy.validatesDomainName = validatesDomainName;
-    securityPolicy.pinnedCertificates = [[NSSet alloc] initWithObjects:cerData, nil];
-    
-    [_sessionManager setSecurityPolicy:securityPolicy];
+    [dataTask resume];
+    return dataTask;
 }
 
 @end
 
-#ifdef DEBUG
-@implementation NSDictionary (CNLog)
-
-- (NSString *)descriptionWithLocale:(id)locale {
-    NSString *logString;
-    @try {
-        
-        logString=[[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:self options:NSJSONWritingPrettyPrinted error:nil] encoding:NSUTF8StringEncoding];
-        
-    } @catch (NSException *exception) {
-        
-        NSString *reason = [NSString stringWithFormat:@"reason:%@",exception.reason];
-        logString = [NSString stringWithFormat:@"转换失败:\n%@,\n转换终止,输出如下:\n%@",reason,self.description];
-        
-    } @finally {
-        
-    }
-    return logString;
-}
-@end
-#endif

@@ -7,7 +7,7 @@
 //
 
 #import "ViewController.h"
-#import "JHBaseRequest.h"
+#import "JHRequest.h"
 #import "JHFaceModel.h"
 #import "JHNetworking.h"
 @interface ViewController ()
@@ -19,13 +19,23 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    [JHBaseRequest request:@"http://newuat.ikapp.ikang.com/appService/city/allCity" parameters:nil requestType:JHRequestType_Get modelClass:@"JHAllCityModel" success:^(id response) {
-        JHAllCityModel *model = response;
-        NSLog(@"%@",model);
-//        NSArray *array = response;
-//        NSLog(@"%@",array);
+//    [JHBaseRequest request:@"http://newuat.ikapp.ikang.com/appService/city/allCity" parameters:nil requestType:JHRequestType_Get modelClass:@"JHAllCityModel" success:^(id response) {
+//        JHAllCityModel *model = response;
+//        NSLog(@"%@",model);
+////        NSArray *array = response;
+////        NSLog(@"%@",array);
+//    } failure:^(NSError *error) {
+//        NSLog(@"请求失败");
+//    }];
+    
+    [JHRequest requestWithConfig:^(JHNetworkConfig *requestConfig) {
+        requestConfig.URLString = @"http://newuat.ikapp.ikang.com/appService/city/allCity";
+        requestConfig.modelClass = @"JHAllCityModel";
+    } success:^(id responseObject) {
+        NSLog(@"%@",responseObject);
+        
     } failure:^(NSError *error) {
-        NSLog(@"请求失败");
+        
     }];
     // Do any additional setup after loading the view, typically from a nib.
 
