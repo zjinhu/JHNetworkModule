@@ -4,10 +4,23 @@
 ## 使用方法
 
 ```objc
+普通请求
     [JHRequest requestWithConfig:^(JHNetworkConfig *requestConfig) {
         requestConfig.URLString = @"接口名称";
         requestConfig.modelClass = @"数据model";
         requestConfig.parameters = 参数;
+        requestConfig.requestType = 请求类型;
+    } success:^(id responseObject) {
+        NSLog(@"%@",responseObject);
+        
+    } failure:^(NSError *error) {
+        
+    }];
+    上传图片
+        [JHRequest requestWithConfig:^(JHNetworkConfig *requestConfig) {
+        requestConfig.URLString = @"接口名称";
+        requestConfig.requestType = JHRequestType_Upload;
+        [requestConfig addFormDataWithName:文件类型名称 fileName:文件名 mimeType:[requestConfig mimeTypeWithImageData:数据data] fileData:数据data];
     } success:^(id responseObject) {
         NSLog(@"%@",responseObject);
         
