@@ -80,6 +80,43 @@
     }
     return _uploadDatas;
 }
+
+- (BOOL)isGifWithImageData: (NSData *)fileData {
+    if ([[self imageTypeWithImageData:fileData] isEqualToString:@"gif"]) {
+        return YES;
+    }
+    return NO;
+}
+
+- (NSString *)imageTypeWithImageData: (NSData *)fileData {
+    uint8_t c;
+    [fileData getBytes:&c length:1];
+    switch (c) {
+        case 0xFF:
+            return @"jpeg";
+        case 0x89:
+            return @"png";
+        case 0x47:
+            return @"gif";
+        case 0x49:
+        case 0x4D:
+            return @"tiff";
+        case 0x52:
+            if ([fileData length] < 12) {
+                return nil;
+            }
+            NSString *testString = [[NSString alloc] initWithData:[fileData subdataWithRange:NSMakeRange(0, 12)] encoding:NSASCIIStringEncoding];
+            if ([testString hasPrefix:@"RIFF"] && [testString hasSuffix:@"WEBP"]) {
+                return @"webp";
+            }
+            return nil;
+    }
+    return nil;
+}
+
+- (NSString *)mimeTypeWithImageData: (NSData *)fileData{
+    return [NSString stringWithFormat:@"image/%@",[self imageTypeWithImageData:fileData]];
+}
 @end
 
 

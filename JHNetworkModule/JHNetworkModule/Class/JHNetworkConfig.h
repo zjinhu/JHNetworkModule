@@ -91,11 +91,26 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)removeHeaderForkey:(NSString *)key;
 //============================================================
+/**
+ *  上传文件生成表单,多次add会生成多个文件上传
+ */
 - (void)addFormDataWithName:(NSString *)name fileData:(NSData *)fileData;
 - (void)addFormDataWithName:(NSString *)name fileName:(NSString *)fileName mimeType:(NSString *)mimeType fileData:(NSData *)fileData;
 - (void)addFormDataWithName:(NSString *)name fileURL:(NSURL *)fileURL;
 - (void)addFormDataWithName:(NSString *)name fileName:(NSString *)fileName mimeType:(NSString *)mimeType fileURL:(NSURL *)fileURL;
 
+/**
+ *  判断上传文件是不是gif
+ */
+- (BOOL)isGifWithImageData: (NSData *)fileData;
+/**
+ *  根据上传图片的文件返回文件类型 image/png
+ */
+- (NSString *)mimeTypeWithImageData: (NSData *)fileData;
+/**
+ *  返回上传图片的后缀   .png .jpeg 等等
+ */
+- (NSString *)imageTypeWithImageData: (NSData *)fileData;
 @end
 
 #pragma mark - JHUploadDataConfig
@@ -134,6 +149,5 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)formDataWithName:(NSString *)name fileName:(NSString *)fileName mimeType:(NSString *)mimeType fileData:(NSData *)fileData;
 + (instancetype)formDataWithName:(NSString *)name fileURL:(NSURL *)fileURL;
 + (instancetype)formDataWithName:(NSString *)name fileName:(NSString *)fileName mimeType:(NSString *)mimeType fileURL:(NSURL *)fileURL;
-
 @end
 NS_ASSUME_NONNULL_END

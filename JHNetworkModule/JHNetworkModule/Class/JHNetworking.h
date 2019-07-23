@@ -31,7 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  发起网络请求
  
- @param request ZBURLRequest
+ @param request JHNetworkConfig
  @param progressBlock 进度
  @param success 成功回调
  @param failure 失败回调
@@ -45,7 +45,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  上传文件
  
- @param request ZBURLRequest
+ @param request JHNetworkConfig
  @param progressBlock 进度
  @param success 成功回调
  @param failure 失败回调
@@ -59,7 +59,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  下载文件
  
- @param request ZBURLRequest
+ @param request JHNetworkConfig
  @param progressBlock 进度
  @param completionHandler 回调
  @return task
@@ -70,7 +70,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  取消请求任务
- 
  @param urlString           协议接口
  */
 - (void)cancelRequest:(NSString *)urlString  completion:(JHCancelRequestBlock)completion;

@@ -9,13 +9,7 @@
 #import "JHBaseModel.h"
 
 @implementation JHBaseModel
-//+(BOOL)propertyIsOptional:(NSString*)propertyName{
-//    return YES;
-//}
-//
-//+(JSONKeyMapper*)keyMapper{
-//    return [JSONKeyMapper mapperForSnakeCase];
-//}
+
 + (void)saveWithDic:(NSDictionary *)dic{
     //    [[NSUserDefaults standardUserDefaults] setObject:dic forKey:AccountInfoModelSaveKey];
     //    [[NSUserDefaults standardUserDefaults] synchronize];
