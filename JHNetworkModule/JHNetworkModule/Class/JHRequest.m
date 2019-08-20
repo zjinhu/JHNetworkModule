@@ -81,6 +81,20 @@ static BOOL _isOpenLog;   // 是否已开启日志打印
     }];
 }
 
++ (void)download:(NSString *)URLString
+         fileDir:(NSString *)fileDir
+        fileName:(NSString *)fileName
+        progress:(JHHttpProgress)progress
+         success:(void(^)(NSString *filePath))success
+         failure:(JHHttpRequestFailed)failure{
+    [[JHNetworking sharedNetworking] downloadWithURL:URLString
+                                             fileDir:fileDir
+                                            fileName:fileName
+                                            progress:progress
+                                             success:success
+                                             failure:failure];
+}
+
 #pragma mark - 其他配置
 +(void)cookTheResponse:(id)responseObject
                request:(JHNetworkConfig *)request

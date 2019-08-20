@@ -204,6 +204,61 @@
     [dataTask resume];
     return dataTask;
 }
-
+/**
+ *  下载文件
+ *
+ *  @param URL      请求地址
+ *  @param fileDir  文件存储目录(默认存储目录为Download)
+ *  @param progress 文件下载的进度信息
+ *  @param success  下载成功的回调(回调参数filePath:文件的路径)
+ *  @param failure  下载失败的回调
+ *
+ *  @return 返回NSURLSessionDownloadTask实例，可用于暂停继续，暂停调用suspend方法，开始下载调用resume方法
+ */
+- (NSURLSessionDownloadTask *)downloadWithURL:(NSString *)URL
+                                      fileDir:(NSString *)fileDir
+                                     fileName:(NSString *)fileName
+                                     progress:(JHHttpProgress)progress
+                                      success:(void(^)(NSString *filePath))success
+                                      failure:(void (^)(NSError *error))failure{
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:URL]];
+    
+    NSURLSessionDownloadTask *dataTask = [self downloadTaskWithRequest:request progress:^(NSProgress * downloadProgress) {
+        //下载进度
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            progress ? progress(downloadProgress) : nil;
+        });
+    } destination:^NSURL * _Nonnull(NSURL * targetPath, NSURLResponse * response) {
+        //拼接缓存目录
+        NSString *downloadDir = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:fileDir ? fileDir : @"Download"];
+        //打开文件管理器
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        //创建Download目录
+        [fileManager createDirectoryAtPath:downloadDir withIntermediateDirectories:YES attributes:nil error:nil];
+        //拼接文件路径
+        //        NSString *filePath = [downloadDir stringByAppendingPathComponent:response.suggestedFilename];
+        NSString *filePath = [downloadDir stringByAppendingPathComponent:fileName];
+        //返回文件位置的URL路径
+        return [NSURL fileURLWithPath:filePath];
+        
+    } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
+        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+        NSDictionary *dic = httpResponse.allHeaderFields;
+        NSString *contentType = dic[@"Content-Type"];
+        if ([contentType containsString:@"json"]) {
+            NSError *err = [NSError errorWithDomain:@"json" code:2019 userInfo:nil];
+            if(failure) {failure(err) ; return ;};
+        }
+        if(failure && error) {failure(error) ; return ;};
+        success ? success(filePath.absoluteString /** NSURL->NSString*/) : nil;
+        
+    }];
+    
+    //开始下载
+    [dataTask resume];
+    
+    return dataTask;
+}
 @end
 

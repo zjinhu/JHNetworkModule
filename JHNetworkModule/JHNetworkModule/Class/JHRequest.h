@@ -43,4 +43,20 @@
  */
 + (void)cancelRequest:(NSString *)URLString completion:(JHCancelRequestBlock)completion;
 
+/**
+ *  下载文件
+ *
+ *  @param URLString      请求地址
+ *  @param fileDir  文件存储目录(默认存储目录为Download)
+ *  @param progress 文件下载的进度信息
+ *  @param success  下载成功的回调(回调参数filePath:文件的路径)
+ *  @param failure  下载失败的回调
+ */
++ (void)download:(NSString *)URLString
+         fileDir:(NSString *)fileDir
+        fileName:(NSString *)fileName
+        progress:(JHHttpProgress)progress
+         success:(void(^)(NSString *filePath))success
+         failure:(JHHttpRequestFailed)failure;
+
 @end

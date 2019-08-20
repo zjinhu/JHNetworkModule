@@ -67,7 +67,23 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSURLSessionDownloadTask *)downloadWithRequest:(JHNetworkConfig *)request
                                     progressBlock:(void (^)(NSProgress *downloadProgress)) progressBlock
                                 completionHandler:(void (^)(NSURLResponse *response, NSURL *filePath, NSError *error))completionHandler;
-
+/**
+ *  下载文件
+ *
+ *  @param URL      请求地址
+ *  @param fileDir  文件存储目录(默认存储目录为Download)
+ *  @param progress 文件下载的进度信息
+ *  @param success  下载成功的回调(回调参数filePath:文件的路径)
+ *  @param failure  下载失败的回调
+ *
+ *  @return 返回NSURLSessionDownloadTask实例，可用于暂停继续，暂停调用suspend方法，开始下载调用resume方法
+ */
+- (NSURLSessionDownloadTask *)downloadWithURL:(NSString *)URL
+                                      fileDir:(NSString *)fileDir
+                                     fileName:(NSString *)fileName
+                                     progress:(JHHttpProgress)progress
+                                      success:(void(^)(NSString *filePath))success
+                                      failure:(void (^)(NSError *error))failure;
 /**
  取消请求任务
  @param urlString           协议接口
