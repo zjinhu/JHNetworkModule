@@ -1,5 +1,7 @@
 # JHNetworkModule
 V1.3.0：添加AFNetwork 4.0.1的适配
+
+
 网络请求组件，封装AFNetwork，YYModel
 仅封装简单的方法，以后扩展
 ## 使用方法
