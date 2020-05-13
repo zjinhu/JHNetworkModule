@@ -20,8 +20,8 @@
     [super viewDidLoad];
 
     [JHRequest requestWithConfig:^(JHNetworkConfig *requestConfig) {
-        requestConfig.URLString = @"http://newuat.ikapp.ikang.com/appService/city/allCity";
-        requestConfig.modelClass = @"JHAllCityModel";
+        requestConfig.URLString = @"https://jsonplaceholder.typicode.com/posts";
+        requestConfig.modelClass = @"JHFaceModel";
     } success:^(id responseObject) {
         NSLog(@"%@",responseObject);
         

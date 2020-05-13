@@ -73,7 +73,7 @@
 }
 
 - (void)dealloc {
-    [self invalidateSessionCancelingTasks:YES];
+    [self invalidateSessionCancelingTasks:YES resetSession:YES];
 }
 
 #pragma mark - 其他配置
@@ -81,14 +81,14 @@
     self.requestSerializer =request.requestSerializer==JHRequestSerializerJSON ? [AFJSONRequestSerializer serializer]:[AFHTTPRequestSerializer serializer];
 }
 
-- (void)headersAndTimeConfig:(JHNetworkConfig *)request{
+- (void)timeoutConfig:(JHNetworkConfig *)request{
     self.requestSerializer.timeoutInterval=request.timeoutInterval?request.timeoutInterval:30;
     
-    if ([[request mutableHTTPRequestHeaders] allKeys].count>0) {
-        [[request mutableHTTPRequestHeaders] enumerateKeysAndObjectsUsingBlock:^(id field, id value, BOOL * __unused stop) {
-            [self.requestSerializer setValue:value forHTTPHeaderField:field];
-        }];
-    }
+    //    if ([[request mutableHTTPRequestHeaders] allKeys].count>0) {
+    //        [[request mutableHTTPRequestHeaders] enumerateKeysAndObjectsUsingBlock:^(id field, id value, BOOL * __unused stop) {
+    //            [self.requestSerializer setValue:value forHTTPHeaderField:field];
+    //        }];
+    //    }
 }
 #pragma mark - 取消请求
 - (void)cancelRequest:(NSString *)URLString completion:(JHCancelRequestBlock)completion{
@@ -117,20 +117,29 @@
                           failure:(void (^)(NSURLSessionDataTask *task, NSError *error))failure{
     
     [self requestSerializerConfig:request];
-    [self headersAndTimeConfig:request];
+    [self timeoutConfig:request];
     
     NSString *URLString=[request.URLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     
-    if (request.requestType==JHRequestType_Post) {
-        return [self POST:URLString parameters:request.parameters progress:progressBlock success:success failure:failure];
-    }else if (request.requestType==JHRequestType_Put){
-        return [self PUT:URLString parameters:request.parameters success:success failure:failure];
-    }else if (request.requestType==JHRequestType_Patch){
-        return [self PATCH:URLString parameters:request.parameters success:success failure:failure];
-    }else if (request.requestType==JHRequestType_Delete){
-        return [self DELETE:URLString parameters:request.parameters success:success failure:failure];
-    }else{
-        return [self GET:URLString parameters:request.parameters progress:progressBlock success:success failure:failure];
+    switch (request.requestType) {
+        case JHRequestType_Post:
+            return [self POST:URLString parameters:request.parameters headers:request.mutableHTTPRequestHeaders progress:progressBlock success:success failure:failure];
+            break;
+        case JHRequestType_Put:
+            return [self PUT:URLString parameters:request.parameters headers:request.mutableHTTPRequestHeaders success:success failure:failure];
+            break;
+        case JHRequestType_Patch:
+            return [self PATCH:URLString parameters:request.parameters headers:request.mutableHTTPRequestHeaders success:success failure:failure];
+            break;
+        case JHRequestType_Delete:
+            return [self DELETE:URLString parameters:request.parameters headers:request.mutableHTTPRequestHeaders success:success failure:failure];
+            break;
+        case JHRequestType_Get:
+            return [self GET:URLString parameters:request.parameters headers:request.mutableHTTPRequestHeaders progress:progressBlock success:success failure:failure];
+            break;
+        default:
+            return nil;
+            break;
     }
 }
 #pragma mark - upload
@@ -141,8 +150,7 @@
     
     NSString *URLString=[request.URLString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     
-    NSURLSessionDataTask *uploadTask = [self POST:URLString parameters:request.parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-        
+    NSURLSessionDataTask *uploadTask = [self POST:URLString parameters:request.parameters headers:request.mutableHTTPRequestHeaders constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
         [request.uploadDatas enumerateObjectsUsingBlock:^(JHUploadDataConfig *obj, NSUInteger idx, BOOL *stop) {
             if (obj.fileData) {
                 if (obj.fileName && obj.mimeType) {
@@ -161,7 +169,7 @@
             }
         }];
         
-    } progress:^(NSProgress * uploadProgress) {
+    } progress:^(NSProgress * _Nonnull uploadProgress) {
         dispatch_sync(dispatch_get_main_queue(), ^{
             progressBlock ? progressBlock(uploadProgress) : nil;
         });
@@ -178,7 +186,7 @@
     
     NSURLRequest *urlRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:URLString]];
     
-    [self headersAndTimeConfig:request];
+    [self timeoutConfig:request];
     
     NSURL *downloadFileSavePath;
     BOOL isDirectory;

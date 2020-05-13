@@ -11,12 +11,4 @@
 @implementation JHFaceModel
 
 @end
-
-@implementation JHCityModel
-@end
-
-@implementation JHAllCityModel
-+ (NSDictionary *)modelContainerPropertyGenericClass {
-    return @{@"results" : [JHCityModel class]};
-}
-@end
+ 
